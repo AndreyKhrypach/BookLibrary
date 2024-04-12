@@ -6,7 +6,7 @@
     <title>Display</title>
 </head>
 <body>
-<p th:text="${user.getFullName() + ', ' + user.getYearOfBirth()}">VALUE</p>
+<p th:text="${user.getUsername() + ', ' + user.getYearOfBirth()}">VALUE</p>
 
 <div th:if="${books.isEmpty()}">
     <p>User don`t have any book</p>
@@ -38,5 +38,14 @@
     <input type="submit" value="Remove"/>
 </form>
 
+<br/>
+<hr/>
+<a href="/admin/users">Library users</a>
+
+<br/>
+<hr/>
+<form th:action="@{/logout}" th:method="POST">
+    <input type="submit" value="Logout" />
+</form>
 </body>
 </html>

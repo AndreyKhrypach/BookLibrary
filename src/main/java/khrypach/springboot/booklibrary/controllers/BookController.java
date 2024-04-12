@@ -7,12 +7,12 @@ import khrypach.springboot.booklibrary.models.LibraryUser;
 import khrypach.springboot.booklibrary.services.BooksService;
 import khrypach.springboot.booklibrary.services.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/books")
@@ -28,7 +28,7 @@ public class BookController {
     }
 
     @GetMapping()
-    public String index(Model model, @RequestParam(value = "page", required = false ) Integer page,
+    public String index(Model model, @RequestParam(value = "page", required = false) Integer page,
                         @RequestParam(value = "books_per_page", required = false) Integer booksPerPage,
                         @RequestParam(value = "sort_by_year", required = false, defaultValue = "false") boolean sortByYear) {
 
@@ -36,6 +36,9 @@ public class BookController {
             model.addAttribute("books", booksService.getAllBooks(sortByYear));
         else
             model.addAttribute("books", booksService.getBooksWithPagination(page, booksPerPage, sortByYear));
+
+        if (usersService.getCurrentUser().getRole().equals("ROLE_ADMIN"))
+            return "books/admin/index";
 
         return "books/index";
     }
@@ -51,10 +54,14 @@ public class BookController {
         else
             model.addAttribute("users", usersService.getAllUsers());
 
+        if (usersService.getCurrentUser().getRole().equals("ROLE_ADMIN"))
+            return "books/admin/display";
+
         return "books/display";
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String newBook(@ModelAttribute("book") Book Book) {
         return "books/new";
     }
@@ -70,6 +77,7 @@ public class BookController {
     }
 
     @GetMapping("/{id}/edit")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String editBook(Model model, @PathVariable("id") long id) {
         model.addAttribute("book", booksService.getBookById(id));
         return "books/edit";
@@ -86,24 +94,27 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String deleteBook(@PathVariable("id") long id) {
         booksService.deleteBook(id);
         return "redirect:/books";
     }
 
     @PatchMapping("/{id}/release")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String release(@PathVariable("id") long id) {
         booksService.releaseBook(id);
         return "redirect:/books/" + id;
     }
 
     @PatchMapping("/{id}/assign")
-    public String assign(@PathVariable("id") int id, @ModelAttribute("person") LibraryUser selectedUser) {
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public String assign(@PathVariable("id") int id, @ModelAttribute("user") LibraryUser selectedUser) {
         booksService.assignBook(id, selectedUser);
         return "redirect:/books/" + id;
     }
 
-    @GetMapping("/search")
+    @GetMapping("/findBook")
     public String searchPage() {
         return "books/search";
     }
@@ -111,6 +122,7 @@ public class BookController {
     @PostMapping("/search")
     public String makeSearch(Model model, @RequestParam("query") String query) {
         model.addAttribute("books", booksService.getBooksByTitle(query));
+
         return "books/search";
     }
 }

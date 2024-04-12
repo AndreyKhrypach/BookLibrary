@@ -22,7 +22,7 @@
         <p th:text="${book.getTitle() + ', ' + book.getAuthor() + ', ' + book.getYear()}">book</p>
 
         <div th:if="${book.getOwner() != null}">
-            <span>Book now has user: </span> <span th:text="${book.getOwner().getFullName()}">User Name</span>
+            <span>Book now has user: </span> <span th:text="${book.getOwner().getUsername()}">User Name</span>
         </div>
 
         <div th:if="${book.getOwner() == null}">

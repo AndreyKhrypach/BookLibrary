@@ -4,8 +4,11 @@ package khrypach.springboot.booklibrary.services;
 import khrypach.springboot.booklibrary.models.Book;
 import khrypach.springboot.booklibrary.models.LibraryUser;
 import khrypach.springboot.booklibrary.repositories.UsersRepository;
+import khrypach.springboot.booklibrary.security.LibraryUserDetails;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +36,10 @@ public class UsersService {
 
     @Transactional
     public void updateUser(long id, LibraryUser updatedUser) {
+        LibraryUser oldData = usersRepository.findById(id).get();
+        updatedUser.setPassword(oldData.getPassword());
+        updatedUser.setRole(oldData.getRole());
+
         updatedUser.setId(id);
         usersRepository.save(updatedUser);
     }
@@ -50,8 +57,8 @@ public class UsersService {
         return usersRepository.findById(id).orElse(null);
     }
 
-    public Optional<LibraryUser> getUserByFullName(String fullName) {
-        return usersRepository.findByFullName(fullName);
+    public Optional<LibraryUser> getUserByFullName(String username) {
+        return usersRepository.findByUsername(username);
     }
 
     public List<Book> getBooksByUserId(long id) {
@@ -68,5 +75,11 @@ public class UsersService {
             return user.get().getBooks();
         }
         return Collections.emptyList();
+    }
+
+    public LibraryUser getCurrentUser() {
+        return ((LibraryUserDetails) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal()).getLibraryUser();
     }
 }
